@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script> -->
+    <script type=text/javascript>
+        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+      </script>
+</head>
+
+<body>
+
+    <html>
+
+    <head>
+        <title></title>
+        <meta charset="UTF-8">
+        <style>
+            .chess-board {
+                border-spacing: 0;
+                border-collapse: collapse;
+            }
+
+            .chess-board th {
+                padding: .5em;
+            }
+
+            .chess-board th+th {
+                border-bottom: 1px solid #000;
+            }
+
+            .chess-board th:first-child,
+            .chess-board td:last-child {
+                border-right: 1px solid #000;
+            }
+
+            .chess-board tr:last-child td {
+                border-bottom: 1px solid;
+            }
+
+            .chess-board th:empty {
+                border: none;
+            }
+
+            .chess-board td {
+                width: 1.5em;
+                height: 1.5em;
+                text-align: center;
+                font-size: 32px;
+                line-height: 0;
+            }
+
+            .chess-board .light {
+                background: #eee;
+            }
+
+            .chess-board .dark {
+                background: #aaa;
+            }
+
+            .chess-board .lightx {
+                background: #eee;
+            }
+
+            .chess-board .darkx {
+                background: #aaa;
+            }
+
+            .alert {
+                color: red;
+            }
+        </style>
+    </head>
+
+    <body>
+        <table class="chess-board">
+            <tbody>
+                <tr>
+                    <th></th>
+                    <th>a</th>
+                    <th>b</th>
+                    <th>c</th>
+                    <th>d</th>
+                    <th>e</th>
+                </tr>
+                <tr>
+                    <th>5</th>
+                    {% for i in post[0] %}
+                    {% if post[0].index(i)%2 == 0 %}
+                    <td onclick="changeText(this)" class="dark" id="{{post[0].index(i)}}">{{ i }}</td>
+                    {% else %}
+                    <td onclick="changeText(this)" class="light" id="{{post[0].index(i)}}">{{ i }}</td>
+                    {% endif %}
+                    {% endfor %}
+
+                </tr>
+                <tr>
+                    <th>4</th>
+                    {% for i in post[1] %}
+                    {% if post[1].index(i)%2 == 1 %}
+                    <td onclick="changeText(this)" class="dark" id="{{10+post[1].index(i)}}">{{ i }}</td>
+                    {% else %}
+                    <td onclick="changeText(this)" class="light" id="{{10+post[1].index(i)}}">{{ i }}</td>
+                    {% endif %}
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <th>3</th>
+                    {% for i in post[2] %}
+                    {% if post[2].index(i)%2 == 0 %}
+                    <td onclick="changeText(this)" class="dark" id="{{20+post[2].index(i)}}">{{ i }}</td>
+                    {% else %}
+                    <td onclick="changeText(this)" class="light" id="{{20+post[2].index(i)}}">{{ i }}</td>
+                    {% endif %}
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <th>2</th>
+                    {% for i in post[3] %}
+                    {% if post[3].index(i)%2 == 1 %}
+                    <td onclick="changeText(this)" class="dark" id="{{30+post[3].index(i)}}">{{ i }}</td>
+                    {% else %}
+                    <td onclick="changeText(this)" class="light" id="{{30+post[3].index(i)}}">{{ i }}</td>
+                    {% endif %}
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <th>1</th>
+                    {% for i in post[4] %}
+                    {% if post[4].index(i)%2 == 0 %}
+                    <td onclick="changeText(this)" class="dark" id="{{40+post[4].index(i)}}">{{ i }}</td>
+                    {% else %}
+                    <td onclick="changeText(this)" class="light" id="{{40+post[4].index(i)}}">{{ i }}</td>
+                    {% endif %}
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+        <br>
+        <br>
+        <br>
+        <br>
+        <hr>
+        <h6 id="turn">wait, initialising game</h6>
+    </body>
+
+    </html>
+
+    <script>
+        const socket = io.connect("http://10.206.4.114:3002/");
+        // const socket = io.connect("http://10.250.93.252:3002/");
+
+        socket.on('connect', function () {
+            socket.emit('join_room', {
+                user: "{{user}}",
+                room: 123
+            });
+
+
+
+        });
+
+        var dis = document.getElementById('turn');
+
+        var win = 0;
+        var turn = 0;
+
+        
+
+            function changeText(tc) {
+                if (turn == 1) {
+                if (win == 1) {
+                    alert('game finished')
+                } else {
+
+
+                    // alert('sss');
+
+                    if (tc.className == 'dark' || tc.className == 'light') {
+
+                        console.log(tc.id);
+
+                        socket.emit('play', {
+
+                            user: "{{user}}",
+                            text: tc.innerHTML,
+                            el: tc.id
+                        });
+
+                    }
+                    //  else {
+                    //     alert("ado");
+                    // }
+
+
+                }
+                
+        } else {
+            dis.className = 'alert';
+        }
+            }
+
+
+
+        socket.on('receive_message', function (data) {
+            console.log(data);
+            console.log("{{user}}" + 1);
+
+            if (data.user.user == "{{user}}") {
+
+
+
+                console.log(data.user.position);
+                var element = document.getElementById(data.user.position);
+                turn = 0;
+                element.innerHTML = "⚫";
+                element.className = element.className + 'x';
+
+                if (String(data.win) == "{{user}}") {
+                    console.log(data.win);
+                    win = 1;
+                    alert("You Win");
+                    window.location.replace("/win");
+                } else if (String(data.win) == "{{user%2+1}}") {
+                    win = 1;
+                    alert("You Lose");
+                    window.location.replace("/lose");
+                }
+
+
+                turn = 0;
+                dis.innerHTML = "Opponent's Turn";
+                dis.className = '';
+                console.log('opponent turn');
+
+            } else {
+
+                var element = document.getElementById(data.anuser.position);
+                turn = 0;
+                element.innerHTML = "⚫";
+                element.className = element.className + 'x';
+
+                if (String(data.win) == "{{user}}") {
+                    console.log(data.win);
+                    win = 1;
+                    alert("You Win");
+                    window.location.replace("/win");
+                } else if (String(data.win) == "{{user%2+1}}") {
+                    win = 1;
+                    alert("You Lose");
+                    window.location.replace("/lose");
+                }
+                turn = 1;
+                dis.innerHTML = "Your Turn";
+                dis.className = '';
+                console.log('your turn');
+
+            }
+
+
+        });
+
+
+
+
+        window.onbeforeunload = function () {
+            socket.emit('leave_room', {
+                user: "{{user}}",
+                room: 123
+            })
+        };
+
+
+
+
+
+        socket.on('join_room_announcement', function (data) {
+            console.log(data, 'joined');
+        });
+
+        socket.on('leave_room_announcement', function (data) {
+            console.log(data, 'leaved');
+        });
+
+
+
+        if ("{{user}}" == '1') {
+            document.getElementById('turn').innerHTML = "Your Turn";
+            turn = 1;
+        } else {
+            document.getElementById('turn').innerHTML = "Opponent's Turn";
+            turn = 0;
+        }
+
+
+
+
+    </script>
+
+
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script type=text/javascript>
+        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+      </script>
+</head>
+<body>
+    
+<html>
+    <head>
+        <title></title>
+        <meta charset="UTF-8">
+        <style>
+            .chess-board { border-spacing: 0; border-collapse: collapse; }
+            .chess-board th { padding: .5em; }
+            .chess-board th + th { border-bottom: 1px solid #000; }
+            .chess-board th:first-child,
+            .chess-board td:last-child { border-right: 1px solid #000; }
+            .chess-board tr:last-child td { border-bottom: 1px solid; }
+            .chess-board th:empty { border: none; }
+            .chess-board td { width: 1.5em; height: 1.5em; text-align: center; font-size: 32px; line-height: 0;}
+            .chess-board .light { background: #eee; }
+            .chess-board .dark { background: #aaa; }
+            .chess-board .lightx { background: #eee; }
+            .chess-board .darkx { background: #aaa; }
+        </style>
+    </head>
+    <body>
+        <table class="chess-board">
+            <tbody>
+                <tr>
+                    <th></th>
+                    <th>a</th>
+                    <th>b</th>
+                    <th>c</th>
+                    <th>d</th>
+                    <th>e</th>
+                </tr>
+                <tr>
+                    <th>5</th>
+                    {% for i in post[0] %}
+                    {% if post[0].index(i)%2 == 0 %}
+                    <td onclick="changeText(this)" class="dark">{{ i }}</td>
+                    {% else %}
+                    <td onclick="changeText(this)" class="light">{{ i }}</td>
+                    {% endif %}
+                    {% endfor %}
+
+                </tr>
+                <tr>
+                    <th>4</th>
+                    {% for i in post[1] %}
+                    {% if post[1].index(i)%2 == 1 %}
+                    <td onclick="changeText(this)" class="dark">{{ i }}</td>
+                    {% else %}
+                    <td onclick="changeText(this)" class="light">{{ i }}</td>
+                    {% endif %}
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <th>3</th>
+                    {% for i in post[2] %}
+                    {% if post[2].index(i)%2 == 0 %}
+                    <td onclick="changeText(this)" class="dark">{{ i }}</td>
+                    {% else %}
+                    <td onclick="changeText(this)" class="light">{{ i }}</td>
+                    {% endif %}
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <th>2</th>
+                    {% for i in post[3] %}
+                    {% if post[3].index(i)%2 == 1 %}
+                    <td onclick="changeText(this)" class="dark">{{ i }}</td>
+                    {% else %}
+                    <td onclick="changeText(this)" class="light">{{ i }}</td>
+                    {% endif %}
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <th>1</th>
+                    {% for i in post[4] %}
+                    {% if post[4].index(i)%2 == 0 %}
+                    <td onclick="changeText(this)" class="dark">{{ i }}</td>
+                    {% else %}
+                    <td onclick="changeText(this)" class="light">{{ i }}</td>
+                    {% endif %}
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+    </body>
+</html>
+
+<script>
+    var win = 0;
+    function changeText(id) {
+
+            //code check if class if id is light or dark
+        if (win==1) {
+            alert('game finished')
+        } else {
+            
+        
+
+        if (id.className == 'dark' || id.className == 'light') {
+
+
+            $.get($SCRIPT_ROOT + '/play', {
+                user: 1,
+                text: id.innerHTML
+
+            }, function(data){
+                
+                id.innerHTML = "⚫";
+                id.className = id.className+'x';
+
+                if(data.text == 1){
+                   //code to redirect to /win
+                    //  window.location.replace("/win");
+                    if(data.user = 1)
+                    win = 1;
+                    alert("You Win");
+                }
+            });
+            return false
+
+        } else {
+            alert("ado");
+        }
+        
+        
+    }
+        // // id.innerHTML = text;
+    }
+
+
+</script>
+
+</body>
+</html> -->
